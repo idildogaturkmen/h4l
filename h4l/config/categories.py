@@ -67,8 +67,20 @@ def add_lepton_categories(config: od.Config) -> None:
       selection="catid_4e",
       label="4 Electrons",
     )
-    
-# TODO #
+
 # Task 1.
 # Define categories for 4mu and 2e2mu
 # Hint: modify also categorization/default.py
+    cat_4mu = config.add_category(
+      name="4mu",
+      id=20,
+      selection="catid_4mu",
+      label="4 Muons",
+    )
+
+    cat_2e2mu = config.add_category(
+      name="2e2mu",
+      id=30,
+      selection="catid_2e2mu",
+      label="2 Electrons 2 Muons",
+    )

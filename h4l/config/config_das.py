@@ -370,12 +370,15 @@ def add_das_config(
     cfg.add_shift(name="mu_up", id=10, type="shape")
     cfg.add_shift(name="mu_down", id=11, type="shape")
     add_shift_aliases(cfg, "mu", {"muon_weight": "muon_weight_{direction}"})
+    # event weights due to electron scale factors
+    cfg.add_shift(name="e_up", id=12, type="shape")
+    cfg.add_shift(name="e_down", id=13, type="shape")
+    add_shift_aliases(cfg, "e", {"electron_weight": "electron_weight_{direction}"})
     # TODO #
     # Task 1.1
     # Add Electron SFs
     # Hint: modify event_weights below
     # Hint: modify production/default.py
-
 
     cfg.add_shift(name="murmuf_up", id=140, type="shape")
     cfg.add_shift(name="murmuf_down", id=141, type="shape")
@@ -388,6 +391,17 @@ def add_das_config(
         },
     )
 
+    cfg.add_shift(name="ee_up", id=142, type="shape")
+    cfg.add_shift(name="ee_down", id=143, type="shape")
+    add_shift_aliases(
+        cfg,
+        "ee",
+        {
+            "ee_weight": "ee_weight_{direction}",
+            "normalized_ee_weight": "normalized_ee_weight_{direction}",
+        },
+    )
+    
     # external files
     json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-c3be7e71"
     cfg.x.external_files = DotDict.wrap({
@@ -525,11 +539,13 @@ def add_das_config(
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "muon_weight": get_shifts("mu"),
+        "electron_weight": get_shifts("e"),
     })
 
     # versions per task family, either referring to strings or to callables receving the invoking
     # task instance and parameters to be passed to the task family
     cfg.x.versions = {
+        "cf.CalibrateEvents": "v0",
         # "cf.CalibrateEvents": "prod1",
         # "cf.SelectEvents": (lambda cls, inst, params: "prod1" if params.get("selector") == "default" else "dev1"),
         # ...
