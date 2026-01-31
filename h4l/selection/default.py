@@ -14,20 +14,14 @@ from columnflow.selection.cms.jets import jet_veto_map
 from columnflow.production.categories import category_ids
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
+from columnflow.production.cms.electron import electron_weights
+from columnflow.production.cms.muon import muon_weights
 from columnflow.production.processes import process_ids
 
 from h4l.selection.lepton import electron_selection, muon_selection
 from h4l.selection.trigger import trigger_selection
 
-# Task 2.
-# Implement official HZZ Selection
-# All Z candidates must have 12 < mll < 120 GeV
-# The Z1 candidate must have mZ1 > 40 GeV
-# The ZZ candidate must have mZZ > 70 GeV
-# Bonus: Leading lepton must have pT > 20 GeV, subleading pT > 10 GeV
-# Hint: import the following
-# First you need to define build_4sf in util.py
-# from h4l.util import build_2e2mu, build_4sf
+from h4l.util import build_2e2mu, build_4sf
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -38,6 +32,7 @@ ak = maybe_import("awkward")
         "event",
         category_ids,
         attach_coffea_behavior, json_filter, mc_weight,
+        electron_weights, muon_weights,
         electron_selection, muon_selection,
         trigger_selection,
         increment_stats, process_ids
@@ -45,6 +40,7 @@ ak = maybe_import("awkward")
     produces={
         category_ids,
         attach_coffea_behavior, json_filter, mc_weight,
+        electron_weights, muon_weights,
         electron_selection, muon_selection,
         trigger_selection,
         increment_stats, process_ids,
@@ -65,7 +61,8 @@ def default(
     # add corrected mc weights
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
-    # TODO: Add weights
+        events = self[electron_weights](events, **kwargs)
+        events = self[muon_weights](events, **kwargs)
 
     # initialize `SelectionResult` object
     results = SelectionResult()
@@ -104,10 +101,39 @@ def default(
 
     # Task 2.
     # Implement official HZZ Selection
-    # All Z candidates must have 12 < mll < 120 GeV
-    # The Z1 candidate must have mZ1 > 40 GeV
-    # The ZZ candidate must have mZZ > 70 GeV
+    
+    # leading/subleading lepton pT requirement
+    leptons = ak.concatenate([electrons, muons], axis=1)
+    leptons = leptons[ak.argsort(leptons.pt, axis=1, ascending=False)]
+    leptons = ak.pad_none(leptons, 2, axis=1)
+    lead_pt = leptons.pt[:, 0]
+    sublead_pt = leptons.pt[:, 1]
     # Bonus: Leading lepton must have pT > 20 GeV, subleading pT > 10 GeV
+    results.steps["lepton_pt"] = ak.fill_none((lead_pt > 20) & (sublead_pt > 10), False)
+
+    ele_plus = electrons[electrons.charge > 0]
+    ele_minus = electrons[electrons.charge < 0]
+    mu_plus = muons[muons.charge > 0]
+    mu_minus = muons[muons.charge < 0]
+
+    zz_2e2mu = build_2e2mu(mu_plus, mu_minus, ele_plus, ele_minus)
+    zz_4e = build_4sf(ele_plus, ele_minus)
+    zz_4mu = build_4sf(mu_plus, mu_minus)
+    zz_inclusive = ak.concatenate([zz_2e2mu, zz_4e, zz_4mu], axis=1)
+
+    # All Z candidates must have 12 < mll < 120 GeV
+    z_mass_mask = (
+        (zz_inclusive.z1.mass > 12) & (zz_inclusive.z1.mass < 120) &
+        (zz_inclusive.z2.mass > 12) & (zz_inclusive.z2.mass < 120)
+    )
+    # The Z1 candidate must have mZ1 > 40 GeV
+    z1_mass_mask = z_mass_mask & (zz_inclusive.z1.mass > 40)
+    # The ZZ candidate must have mZZ > 70 GeV
+    zz_mass_mask = z1_mass_mask & (zz_inclusive.zz.mass > 70)
+
+    results.steps["z_candidate"] = ak.fill_none(ak.any(z_mass_mask, axis=1), False)
+    results.steps["z1_mass"] = ak.fill_none(ak.any(z1_mass_mask, axis=1), False)
+    results.steps["zz_mass"] = ak.fill_none(ak.any(zz_mass_mask, axis=1), False)
 
     # post selection build process IDs
     events = self[process_ids](events, **kwargs)

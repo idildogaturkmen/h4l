@@ -247,12 +247,14 @@ def add_das_config(
     # default objects, such as calibrator, selector, producer, ml model, inference model, etc
     cfg.x.default_calibrator = "example" # TODO: Do we need any calibration?
     cfg.x.default_selector = "default"
-    # TODO #
-    # Task 2.
-    # Expand selection to use HZZ4L official one
-    # Hint: Add here additional selector_steps
-    # Hint: Modify selection/default.py
-    cfg.x.default_selector_steps = ("trigger", "four_leptons")
+    cfg.x.default_selector_steps = (
+        "trigger",
+        "four_leptons",
+        "lepton_pt",
+        "z_candidate",
+        "z1_mass",
+        "zz_mass",
+    )
     cfg.x.default_producer = "default"
     cfg.x.default_hist_producer = "cf_default"
     cfg.x.default_ml_model = None
@@ -282,18 +284,24 @@ def add_das_config(
 
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
-    # TODO #
-    # Task 2.
-    # Expand selection to use HZZ4L official one
-    # Hint: Add here additional selector_steps
-    # Hint: Modify selection/default.py
     cfg.x.selector_step_groups = {
-        "default": ["trigger", "four_leptons"],
+        "default": [
+            "trigger",
+            "four_leptons",
+            "lepton_pt",
+            "z_candidate",
+            "z1_mass",
+            "zz_mass",
+        ],
     }
 
     # selector step labels (for cutflow plots)
     cfg.x.selector_step_labels = {
         "four_leptons": r"4$\ell$",
+        "lepton_pt": r"$p_T^{\ell 1}>20,\ p_T^{\ell 2}>10$",
+        "z_candidate": r"$12<m_{\ell\ell}<120$",
+        "z1_mass": r"$m_{Z1}>40$",
+        "zz_mass": r"$m_{4\ell}>70$",
     }
 
     # custom method and sandbox for determining dataset lfns
@@ -506,6 +514,8 @@ def add_das_config(
             "category_ids", "mc_weight", "pdf_weight*", "murmuf_weight*",
             "leptons_os", "single_triggered", "cross_triggered",
             "pu_weight*",
+            "electron_weight*",
+            "muon_weight*",
         } | {
             # four momenta information
             f"{field}.{var}"
