@@ -3,6 +3,7 @@
 """
 Column production methods related to higher-level features.
 """
+import functools
 
 from columnflow.production import Producer, producer
 from columnflow.production.categories import category_ids

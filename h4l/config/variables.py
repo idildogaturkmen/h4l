@@ -111,7 +111,6 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Electron ID BDT",
     )
 
-    # TODO #
     # Task 3.
     # Add the following observables:
     # 1. Number of electrons in event
@@ -122,3 +121,40 @@ def add_variables(config: od.Config) -> None:
     # 5. Mass of Z2 boson
     # Hint: for some of these you can defined them directly here
     # Hint: some others need some modification/extension of production/default.py
+    
+    config.add_variable(
+        name="n_ele",
+        expression=lambda events: ak.num(events.Electron, axis=1),
+        binning=(11, -0.5, 10.5),
+        x_title="Number of electrons",
+        discrete_x=True,
+    )
+    config.add_variable(
+        name="n_mu",
+        expression=lambda events: ak.num(events.Muon, axis=1),
+        binning=(11, -0.5, 10.5),
+        x_title="Number of muons",
+        discrete_x=True,
+    )
+    config.add_variable(
+        name="m4l_zoomed",
+        expression="m4l",
+        null_value=EMPTY_FLOAT,
+        binning=(35, 105.0, 140.0),
+        unit="GeV",
+        x_title=r"$m_{4l}$ (zoomed)",
+    )
+    config.add_variable(
+        name="z1_mass",
+        null_value=EMPTY_FLOAT,
+        binning=(60, 0.0, 120.0),
+        unit="GeV",
+        x_title=r"$m_{Z1}$",
+    )
+    config.add_variable(
+        name="z2_mass",
+        null_value=EMPTY_FLOAT,
+        binning=(60, 0.0, 120.0),
+        unit="GeV",
+        x_title=r"$m_{Z2}$",
+    )
