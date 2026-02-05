@@ -61,8 +61,6 @@ def default(
     # add corrected mc weights
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
-        events = self[electron_weights](events, **kwargs)
-        events = self[muon_weights](events, **kwargs)
 
     # initialize `SelectionResult` object
     results = SelectionResult()
@@ -91,6 +89,20 @@ def default(
     # select leptons
     electrons = events.Electron[ele_idx]
     muons = events.Muon[muon_idx]
+
+    # add lepton SFs only for selected leptons to avoid out-of-range inputs
+    if self.dataset_inst.is_mc:
+        ele_local_idx = ak.local_index(events.Electron.pt)
+        mu_local_idx = ak.local_index(events.Muon.pt)
+        electron_mask = ak.any(ele_local_idx[..., None] == ele_idx[:, None, :], axis=-1)
+        muon_mask = ak.any(mu_local_idx[..., None] == muon_idx[:, None, :], axis=-1)
+        # SFs are only valid in a defined kinematic range; guard against out-of-bounds
+        ele_sc_eta = abs(events.Electron.eta + events.Electron.deltaEtaSC)
+        electron_mask = electron_mask & (events.Electron.pt >= 10.0) & (ele_sc_eta < 2.5)
+        # muon SFs are typically valid only above ~15 GeV in UL; guard against low-pt
+        muon_mask = muon_mask & (events.Muon.pt >= 15.0) & (abs(events.Muon.eta) < 2.4)
+        events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
+        events = self[muon_weights](events, muon_mask=muon_mask, **kwargs)
 
     # count selected leptons
     n_ele = ak.num(electrons, axis=1)

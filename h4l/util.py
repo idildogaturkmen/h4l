@@ -40,13 +40,15 @@ def build_2e2mu(muons_plus, muons_minus, electrons_plus, electrons_minus):
     return ak.zip({"z1": z1, "z2": z2, "zz": zz}, depth_limit=1)
 
 def build_4sf(leptons_plus, leptons_minus):
-    lepplus1, lepplus2 = ak.unzip(ak.combinations(leptons_plus, 2))
-    lepminus1, lepminus2 = ak.unzip(ak.combinations(leptons_minus, 2))
+    # build all distinct same-flavor OS pairings without jagged broadcasting issues
+    plus_pairs = ak.combinations(leptons_plus, 2)
+    minus_pairs = ak.combinations(leptons_minus, 2)
+    pp, mm = ak.unzip(ak.cartesian([plus_pairs, minus_pairs], axis=1))
 
-    z_a1 = lepplus1 + lepminus1
-    z_a2 = lepplus2 + lepminus2
-    z_b1 = lepplus1 + lepminus2
-    z_b2 = lepplus2 + lepminus1
+    z_a1 = pp["0"] + mm["0"]
+    z_a2 = pp["1"] + mm["1"]
+    z_b1 = pp["0"] + mm["1"]
+    z_b2 = pp["1"] + mm["0"]
 
     z_mass = 91.1876
     is_a1_closer = abs(z_a1.mass - z_mass) < abs(z_a2.mass - z_mass)
