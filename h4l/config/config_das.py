@@ -557,14 +557,14 @@ def add_das_config(
     # task instance and parameters to be passed to the task family
     cfg.x.versions = {
         "cf.CalibrateEvents": "v0",
-        "cf.SelectEvents": (lambda cls, inst, params: "prod8" if params.get("selector") == "default" else "dev1"),
-        "cf.ProduceColumns": "prod8",
-        "cf.ReduceEvents": "prod8",
-        "cf.MergeReducedEvents": "prod8",
-        "cf.ProvideReducedEvents": "prod8",
-        "cf.CreateHistograms": "prod8",
-        "cf.MergeHistograms": "prod8",
-        "cf.PlotVariables1D": "prod8",
+        "cf.SelectEvents": (lambda cls, inst, params: "prod9" if params.get("selector") == "default" else "dev1"),
+        "cf.ProduceColumns": "prod9",
+        "cf.ReduceEvents": "prod9",
+        "cf.MergeReducedEvents": "prod9",
+        "cf.ProvideReducedEvents": "prod9",
+        "cf.CreateHistograms": "prod9",
+        "cf.MergeHistograms": "prod9",
+        "cf.PlotVariables1D": "prod9",
     }
 
     add_variables(cfg)

@@ -146,6 +146,8 @@ def default(
     results.steps["z_candidate"] = ak.fill_none(ak.any(z_mass_mask, axis=1), False)
     results.steps["z1_mass"] = ak.fill_none(ak.any(z1_mass_mask, axis=1), False)
     results.steps["zz_mass"] = ak.fill_none(ak.any(zz_mass_mask, axis=1), False)
+    m4l_window_mask = (zz_inclusive.zz.mass > 105) & (zz_inclusive.zz.mass < 140)
+    results.steps["m4l_window"] = ak.fill_none(ak.any(m4l_window_mask, axis=1), False)
 
     # post selection build process IDs
     events = self[process_ids](events, **kwargs)
