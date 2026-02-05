@@ -14,6 +14,7 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
+set_ak_column_i32 = functools.partial(set_ak_column, value_type=np.int32)
 
 
 @producer(
@@ -30,6 +31,8 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
         "m4l",
         "z1_mass",
         "z2_mass",
+        "n_ele",
+        "n_mu",
     },
 )
 def four_lep_invariant_mass(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -61,10 +64,9 @@ def four_lep_invariant_mass(self: Producer, events: ak.Array, **kwargs) -> ak.Ar
     zz_inclusive = ak.concatenate([zz_2e2mu, zz_4e, zz_4mu], axis=1)
 
     # total number of leptons per event
-    n_leptons = (
-        ak.num(events.Electron, axis=1) +
-        ak.num(events.Muon, axis=1)
-    )
+    n_ele = ak.num(events.Electron, axis=1)
+    n_mu = ak.num(events.Muon, axis=1)
+    n_leptons = n_ele + n_mu
 
     # four-lepton mass, taking into account only events with at least four leptons,
     # and otherwise substituting a predefined EMPTY_FLOAT value
@@ -93,6 +95,16 @@ def four_lep_invariant_mass(self: Producer, events: ak.Array, **kwargs) -> ak.Ar
         events,
         "z2_mass",
         z2_mass,
+    )
+    events = set_ak_column_i32(
+        events,
+        "n_ele",
+        n_ele,
+    )
+    events = set_ak_column_i32(
+        events,
+        "n_mu",
+        n_mu,
     )
 
     # return the events

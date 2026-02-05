@@ -124,14 +124,14 @@ def add_variables(config: od.Config) -> None:
     
     config.add_variable(
         name="n_ele",
-        expression=lambda events: ak.num(events.Electron, axis=1),
+        expression="n_ele",
         binning=(11, -0.5, 10.5),
         x_title="Number of electrons",
         discrete_x=True,
     )
     config.add_variable(
         name="n_mu",
-        expression=lambda events: ak.num(events.Muon, axis=1),
+        expression="n_mu",
         binning=(11, -0.5, 10.5),
         x_title="Number of muons",
         discrete_x=True,
